@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Recortar imagen</title>
+  <link rel="stylesheet" href="css/cropper.min.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    #image-input {
+      display: block;
+      margin: 0 auto 10px;
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: #fff;
+      border: 1px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #preview {  
+        width: 120px;
+        height: 120px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #crop-button {
+      display: block;
+      margin: 100px auto;
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    #modal {
+      margin-left: 20%;
+      margin-top: 5%;
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 60%;
+      height: 80%;
+      align-items: center;
+      justify-content: center;
+      background-color: rgba(0, 0, 0, 0.8);
+      border-radius: 10px;
+    }
+
+    #modal-content {
+        margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 80%;
+  position: relative;
+  margin-top: 10px; /* Agrega un margen superior de 20px */
+    }
+
+    #modal-image {
+      max-width: 120%;
+      max-height: 120%;
+    }
+
+    .save-button {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    button {
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      padding: 10px 20px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Recortar imagen</h1>
+  <input type="file" id="image-input">
+  <div id="preview"></div>
+  <button id="crop-button" disabled>Recortar</button>
+
+  <div id="modal">
+    <div id="modal-content">
+      <img id="modal-image">
+      <button id="modal-crop-button">Guardar cambios</button>
+    </div>
+  </div>
+
+  <script src="js/cropper.min.js"></script>
+  <script>
+    var cropper;
+
+    document.getElementById('image-input').addEventListener('change', function(e) {
+      var file = e.target.files[0];
+      var imageType = /image.*/;
+
+      if (file.type.match(imageType)) {
+        var reader = new FileReader();
+
+        reader.onload = function(e) {
+          var img = new Image();
+          img.src = reader.result;
+
+          img.onload = function() {
+            var preview = document.getElementById('preview');
+            preview.innerHTML = '';
+            preview.appendChild(img);
+            document.getElementById('crop-button').disabled = false;
+            img.style.maxWidth = '120px';
+            img.style.maxHeight = '120px';
+            img.style.position = relative;
+          };
+        };
+
+        reader.readAsDataURL(file);
+      } else {
+        alert('Por favor, selecciona una imagen válida.');
+      }
+    });
+
+    document.getElementById('crop-button').addEventListener('click', function() {
+      document.getElementById('modal-image').src = document.getElementById('preview').firstChild.src;
+      document.getElementById('modal').style.display = 'flex';
+      document.getElementById('modal-crop-button').style.display = 'block';
+
+      if (cropper) {
+        cropper.destroy();
+      }
+
+      cropper = new Cropper(document.getElementById('modal-image'), {
+        aspectRatio: 1,
+        viewMode: 3,
+        autoCropArea: 0.4,
+        movable: false,
+        zoomable: false,
+        cropBoxResizable:true,
+        
+      });
+    });
+
+    document.getElementById('modal-crop-button').addEventListener('click', function() {
+      var croppedCanvas = cropper.getCroppedCanvas({
+        width: 120,
+        height: 120
+      });
+
+      var previewImage = document.createElement('img');
+      previewImage.src = croppedCanvas.toDataURL();
+      document.getElementById('preview').innerHTML = '';
+      document.getElementById('preview').appendChild(previewImage);
+
+      document.getElementById('modal').style.display = 'none';
+      document.getElementById('modal-crop-button').style.display = 'none';
+      cropper.destroy();
+    });
+  </script>
+</body>
+</html>
